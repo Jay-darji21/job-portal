@@ -15,12 +15,12 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
     const { user } = useSelector(store => store.auth);
 
     const [input, setInput] = useState({
-        fullName: user?.fullName || "",
+        fullname: user?.fullname || "",
         email: user?.email || "",
         phoneNumber: user?.phoneNumber || "",
         bio: user?.profile?.bio || "",
-        skills: user?.profile?.skills?.map(skill => skill) || "",
-        file: user?.profile?.resume || ""
+        skills: user?.profile?.skills?.join(", ") || "",
+        file: null
     });
     const dispatch = useDispatch();
 
@@ -36,7 +36,7 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
     const submitHandler = async (e) => {
         e.preventDefault();
         const formData = new FormData();
-        formData.append("fullname", input.fullName);
+        formData.append("fullname", input.fullname);
         formData.append("email", input.email);
         formData.append("phoneNumber", input.phoneNumber);
         formData.append("bio", input.bio);
@@ -47,6 +47,7 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
     
         try {
             setLoading(true);
+            console.log("Submitting profile update...");
             const res = await axios.post(`${USER_API_END_POINT}/profile/update`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
@@ -55,30 +56,27 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
             });
     
             if (res.data.success) {
+                console.log("Profile updated successfully:", res.data.user);
                 dispatch(setUser(res.data.user)); // Update Redux state
                 setInput({
-                    fullName: res.data.user.fullName || "",
+                    fullname: res.data.user.fullname || "",
                     email: res.data.user.email || "",
                     phoneNumber: res.data.user.phoneNumber || "",
                     bio: res.data.user.profile?.bio || "",
-                    skills: res.data.user.profile?.skills || "",
-                    file: res.data.user.profile?.resume || "",
+                    skills: res.data.user.profile?.skills?.join(", ") || "",
+                    file: null
                 }); // Update local state
                 toast.success(res.data.message);
+                setOpen(false);
             }
         } catch (error) {
-            console.log(error);
+            console.error("Error updating profile:", error);
             toast.error(error.response?.data?.message || "Failed to update profile");
         } finally {
             setLoading(false);
         }
-        setOpen(false);
-        console.log(input)
     };
     
-
-
-
     return (
         <div>
             <Dialog open={open}>
@@ -92,9 +90,9 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
                                 <Label htmlFor="name" className="text-right">Name</Label>
                                 <Input
                                     id="name"
-                                    name="fullName"
+                                    name="fullname"
                                     type="text"
-                                    value={input.fullName}
+                                    value={input.fullname}
                                     onChange={changeEventHandler}
                                     className="col-span-3"
                                 />
@@ -138,11 +136,10 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
                                     value={input.skills}
                                     onChange={changeEventHandler}
                                     className="col-span-3"
-                                    required
                                 />
                             </div>
                             <div className='grid grid-cols-4 items-center gap-4'>
-                                <Label htmlFor="file" className="text-right">Resume</Label>
+                                <Label htmlFor="file" className="text-right">Resume (PDF)</Label>
                                 <Input
                                     id="file"
                                     name="file"
@@ -150,8 +147,10 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
                                     accept="application/pdf"
                                     onChange={fileChangeHandler}
                                     className="col-span-3"
-                                    required
                                 />
+                                <div className="col-span-4 text-xs text-gray-500 text-right">
+                                    Optional. Upload only if you want to change your resume.
+                                </div>
                             </div>
                         </div>
                         <DialogFooter>

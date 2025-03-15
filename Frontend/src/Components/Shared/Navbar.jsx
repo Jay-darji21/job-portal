@@ -95,9 +95,9 @@ function Navbar() {
                     />
                   </Avatar>
                   <div>
-                    <h4 className="font-medium">{user?.fullName}</h4>
+                    <h4 className="font-medium">{user?.fullname}</h4>
                     <p className="text-sm text-muted-foreground">
-                      {user?.profile?.bio}
+                      {user?.profile?.bio || "No bio available"}
                     </p>
                   </div>
                 </div>

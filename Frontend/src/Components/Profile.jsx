@@ -11,13 +11,15 @@ import { useSelector } from "react-redux";
 import { applescript } from "globals";
 import useGetAppliedJobs from "@/Hooks/useGetAppliedJobs";
 
-function Profile()  {
+function Profile() {
   const isResume = true;
   
   // const skills = ["HTML", "CSS", "JavScript", "ReactJS", "Mongo DB", "Express JS", "Node JS"]
   useGetAppliedJobs();
   const { user } = useSelector((store) => store.auth);
   const [open, openSet] = useState(false);
+
+  console.log("User profile data:", user);
 
   return (
     <div>
@@ -32,8 +34,8 @@ function Profile()  {
               />
             </Avatar>
             <div>
-              <h1 className="font-medium text-xl">{user?.fullName}</h1>
-              <p className="text-gray-600">{user?.profile.bio}</p>
+              <h1 className="font-medium text-xl">{user?.fullname}</h1>
+              <p className="text-gray-600">{user?.profile?.bio || "No bio available"}</p>
             </div>
           </div>
           <Button
@@ -59,8 +61,8 @@ function Profile()  {
         <div className="my-4">
           <h1 className="font-bold text-lg ">Skills</h1>
           <div className="my-3 flex gap-2 items-center text-lg cursor-default">
-            {user?.profile?.Skills.length > 0 ? (
-              user?.profile?.Skills.map((item, index) => (
+            {user?.profile?.skills && user?.profile?.skills.length > 0 ? (
+              user?.profile?.skills.map((item, index) => (
                 <Badge key={index}>{item}</Badge>
               ))
             ) : (
@@ -71,16 +73,16 @@ function Profile()  {
 
         <div>
           <h1>Resume</h1>
-          {isResume ? (
+          {user?.profile?.resume ? (
             <a
-              href={user?.profile?.Resume}
+              href={user?.profile?.resume}
               target="blank"
               className="text-blue-600 hover:underline cursor-pointer"
             >
-              {user?.profile?.resumeOriginalName}
+              {user?.profile?.resumeOriginalName || "Download Resume"}
             </a>
           ) : (
-            <a>NA</a>
+            <span>No resume available</span>
           )}
         </div>
       </div>

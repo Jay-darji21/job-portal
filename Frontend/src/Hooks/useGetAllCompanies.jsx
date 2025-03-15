@@ -7,20 +7,30 @@ import { useDispatch } from 'react-redux'
 
 const useGetAllCompanies = () => {
     const dispatch = useDispatch();
-    useEffect(()=>{
+    
+    useEffect(() => {
         const fetchCompanies = async () => {
             try {
-                const res = await axios.get(`${COMPANY_API_END_POINT}/getCompanies`,{withCredentials:true});
-                console.log(res.data.company);
-                if(res.data.success){
-                    dispatch(setCompanies(res.data.companies));
+                console.log("Fetching companies...");
+                const res = await axios.get(`${COMPANY_API_END_POINT}/get`, {
+                    withCredentials: true
+                });
+                
+                if (res.data.success) {
+                    console.log("Companies fetched successfully:", res.data.companies);
+                    dispatch(setCompanies(res.data.companies || []));
+                } else {
+                    console.log("No success in response:", res.data);
+                    dispatch(setCompanies([]));
                 }
             } catch (error) {
-                console.log(error);
+                console.error("Error fetching companies:", error);
+                dispatch(setCompanies([]));
             }
         }
+        
         fetchCompanies();
-    },[])
+    }, [dispatch]);
 }
 
 export default useGetAllCompanies;

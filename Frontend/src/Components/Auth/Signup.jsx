@@ -15,7 +15,7 @@ import { Loader2 } from "lucide-react";
 
 const Signup = () => {
   const [input, setInput] = useState({
-    fullName: "",
+    fullname: "",
     email: "",
     phoneNumber: "",
     password: "",
@@ -38,8 +38,19 @@ const Signup = () => {
   const submitHandler = async (e) => {
     e.preventDefault();
 
+    // Validate form fields
+    if (!input.fullname || !input.email || !input.phoneNumber || !input.password || !input.role) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    if (!input.file) {
+      toast.error("Profile photo is required");
+      return;
+    }
+
     const formdata = new FormData();
-    formdata.append("fullName", input.fullName);
+    formdata.append("fullname", input.fullname);
     formdata.append("email", input.email);
     formdata.append("phoneNumber", input.phoneNumber);
     formdata.append("password", input.password);
@@ -55,13 +66,21 @@ const Signup = () => {
         headers: { "Content-Type": "multipart/form-data" },
         withCredentials: true,
       });
+      
       if (res.data.success) {
         navigate("/login");
         toast.success(res.data.message);
       }
     } catch (error) {
-      console.error(error.response?.data); // Backend error
-      toast.error(error.response?.data?.message || "Something went wrong!");
+      console.error("Registration error:", error.response?.data || error);
+      
+      if (error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else if (error.message) {
+        toast.error(error.message);
+      } else {
+        toast.error("Something went wrong during registration!");
+      }
     } finally {
       dispatch(setLoading(false));
     }
@@ -89,8 +108,8 @@ const Signup = () => {
             <Input
               type="text"
               placeholder="Enter your name"
-              value={input.fullName}
-              name="fullName"
+              value={input.fullname}
+              name="fullname"
               onChange={changeEventHandler}
             />
           </div>
@@ -111,7 +130,7 @@ const Signup = () => {
             <Input
               type="Number"
               placeholder="10 digits phone-number"
-              value={Input.phoneNumber}
+              value={input.phoneNumber}
               name="phoneNumber"
               onChange={changeEventHandler}
             />

@@ -43,27 +43,61 @@ const JobPost = () => {
 
   const selectChangeHandler = (value) => {
     const selectedCompany = companies.find(
-      (company) => company.name.toLowerCase() === value
+      (company) => company.name.toLowerCase() === value.toLowerCase()
     );
-    setInput({ ...input, companyId: selectedCompany._id });
+    
+    if (selectedCompany && selectedCompany._id) {
+      setInput({ ...input, companyId: selectedCompany._id });
+      console.log("Selected company:", selectedCompany.name, "ID:", selectedCompany._id);
+    } else {
+      console.error("Company not found or missing ID:", value);
+      toast.error("Invalid company selection");
+    }
   };
 
   const submitHandler = async (e) => {
     e.preventDefault();
+    
+    // Validate all required fields
+    if (!input.title || !input.description || !input.requirements || 
+        !input.salary || !input.location || !input.jobType || 
+        !input.experienceLevel || !input.position || !input.companyId) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+    
     try {
       setLoading(true);
-      const res = await axios.post(`${JOB_API_END_POINT}/post`, input, {
+      
+      // Create a payload with proper data types
+      const payload = {
+        title: input.title,
+        description: input.description,
+        requirements: input.requirements,
+        salary: Number(input.salary),
+        location: input.location,
+        jobType: input.jobType,
+        experienceLevel: Number(input.experienceLevel),
+        position: Number(input.position),
+        companyId: input.companyId
+      };
+      
+      console.log("Sending job data:", payload);
+      
+      const res = await axios.post(`${JOB_API_END_POINT}/post`, payload, {
         headers: {
           "Content-Type": "application/json",
         },
         withCredentials: true,
       });
+      
       if (res.data.success) {
         toast.success(res.data.message);
         navigate("/admin/jobs");
       }
     } catch (error) {
-      toast.error(error.response.data.message);
+      console.error("Job posting error:", error.response?.data || error);
+      toast.error(error.response?.data?.message || "Error posting job");
     } finally {
       setLoading(false);
     }
@@ -165,13 +199,14 @@ const JobPost = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    {companies.map((company) => {
-                      return (
-                        <SelectItem value={company?.name?.toLowerCase()}>
-                          {company.name}
-                        </SelectItem>
-                      );
-                    })}
+                    {companies.map((company) => (
+                      <SelectItem 
+                        key={company._id} 
+                        value={company?.name?.toLowerCase()}
+                      >
+                        {company.name}
+                      </SelectItem>
+                    ))}
                   </SelectGroup>
                 </SelectContent>
               </Select>
